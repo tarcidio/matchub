@@ -1,0 +1,6 @@
+[submodule "matchub-api"]
+	path = matchub-api
+	url = https://github.com/tarcidio/matchub-api
+[submodule "matchub-web"]
+	path = matchub-web
+	url = https://github.com/tarcidio/matchub-web
