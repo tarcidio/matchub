@@ -2,6 +2,7 @@
 
 # how build
 
+git clone --recurse-submodules https://github.com/tarcidio/matchub.git
 docker-compose up -d
 
 # how i build this module
