@@ -78,51 +78,154 @@ Para informações adicionais sobre o processo de credenciamento, consulte a [no
 #### AWS
 
 Como já informado, a aplicação utiliza os [serviços da AWS](), exigindo algumas configurações no [AWS Management Console](). Abaixo, você encontrará um guia passo a passo simplificado para configurar tudo corretamente:
-iam
-grupo de politicas
-usuario
-s3
-lambda
-sqs
 
-1. Criar um Bucket no S3
+1. Conecte-se e selecione a região
+    1. [Crie]() uma conta na AWS para acessar os serviços
+    2. [**Acesse o AWS Management Console**]()
+    2. No canto superior direito, [selecione a região que desejar](). Será nesta região que armazenaremos os serviços S3 e o SQS
+    3. No Arquivo 1 `secrets-env.env`, salve o nome da região em `AWS_REGION`
+
+2. Criar um Bucket no S3
     1. **Acesse o AWS Management Console** e vá até o serviço Amazon S3.
     2. Clique em **Criar bucket**.
-    3. Dê um nome único ao seu bucket e selecione a região.
-    4. Configure as opções conforme necessário (por exemplo, desativar o acesso público, habilitar versionamento, etc.).
+    3. Dê um nome único ao seu bucket
+    4. Configure as opções para permitir acesso público
     5. Clique em **Criar bucket**.
+    6. No Arquivo 1 `secrets-env.env`, salve o nome do bucket em `AWS_S3_BUCKET_HUBUSER_IMAGES`
 
-### 2. Configurar um Usuário IAM e Políticas de Acesso
+3. Criar um SQS
+    1. **Acesse o AWS Management Console** e vá até o serviço Amazon SQS.
+    2. Clique em **Criar fila**.
+    3. Escolha entre uma fila padrão ou uma fila FIFO (First-In-First-Out).
+    4. Configure os atributos da fila conforme necessário
+    5. Clique em **Criar fila**.
+    6. No Arquivo 1 `secrets-env.env`, salve a url do SQS em `AWS_SQS_EVALUATION_NOTIFICATION_URL`
 
-1. **Acesse o serviço IAM** no AWS Management Console.
-2. Vá até **Usuários** e clique em **Adicionar usuário**.
-3. Escolha um nome de usuário e marque a opção **Acesso programático**. Isso permitirá que a aplicação se autentique via API.
-4. Clique em **Próximo: Permissões**.
-5. Escolha **Anexar políticas existentes diretamente** e procure por políticas relacionadas ao S3 (como `AmazonS3FullAccess` para acesso total ou crie uma política personalizada para um acesso mais restrito).
-6. **(Opcional) Crie uma política personalizada**:
-   - Vá até **Políticas** e clique em **Criar política**.
-   - Use o designer de políticas para adicionar permissões. Por exemplo, você pode especificar ações como `s3:PutObject`, `s3:GetObject`, e `s3:DeleteObject` e definir o recurso como o ARN do seu bucket.
-   - Revise e nomeie sua política.
-   - Anexe esta política ao usuário criado.
+4. Armazenar Credenciais Gmail API no AWS Secrets
+    1. **Acesse o AWS Management Console** e vá até o serviço AWS Secrets Manager
+    2. Clique em **Store a new secret**.
+    3. Escolha o tipo de segredo. Para credenciais da API do Gmail, você pode escolher **Other type of secrets**.
+    4. Insira as credenciais da `client_id` e `client_secret` da API do Gmail adquiridas no arquivo `credentials.json`. Você pode armazenar as credenciais em formato chave-valor. Por exemplo:
+    ```json
+    {
+        "client_id": "seu_client_id",
+        "client_secret": "seu_client_secret"
+    }
+    ```
+    5. Clique em **Next**.
+    6. Dê um nome e, opcionalmente, uma descrição ao seu segredo.
+    7. Clique em **Next** e revise as configurações.
+    8. Clique em **Store** para salvar o segredo.
+    9. Guarde o [ARN]() deste segredo para a etapa 7.
 
+5. Criar [Camada para o Lambda]()
+    1. No painel de navegação à esquerda, clique em "Layers".
+    2. Clique em "Create layer".
+    3. Dê um nome e uma descrição para a camada
+    4. Faça upload do [arquivo ZIP que se encontra `./lambda/google-layer.zip`]()
+    5. Clique em "Create".
 
-#### Riot
+6. Criar Lambda
+    1. **Acesse o AWS Management Console** e vá até o serviço Amazon Lambda.
+    2. Clique em "Create function".
+    3. Escolha "Author from scratch".
+    4. Insira um nome para a função.
+    5. Escolha o runtime Python 3.8
+    6. Crie a função Lambda
+    7. Em "Visão Geral" clique em "Add trigger" à esquerda
+    8. Na lista de triggers disponíveis, selecione "SQS".
+    9. Escolha a fila SQS que criou anteriormente
+    10. Configure as [opções adicionais]() para o trigger
+    11. Salve a configuração
+    12. Vá na aba "Código" > "Origem do código" e cole o código anexado neste diretório `./lambda/evaluation-notification.py`
+    13. Vá em "Camadas" > "Adicionar uma camada"
+    14. Escolha a opção "Camada Personalizada"
+    15. Escolha a camada criada anteriormente
+    16. clique em "Adicionar"
+
+7. Configurar um Usuário IAM e Políticas de Acesso
+    1. **Acesse o AWS Management Console** e vá até o serviço Amazon IAM.
+    2. Vá até **Usuários** e clique em **Adicionar usuário**.
+    3. Escolha um nome de usuário e clique em **Próximo: Permissões**.
+    5. Escolha [**Anexar políticas existentes diretamente**]()
+    6. Procure por políticas relacionadas ao S3 (como `AmazonS3FullAccess` para acesso total) e ao SQS (como `AmazonSQSFullAccess` para acesso total) e anexe
+    7. Complete a criação do usuário
+    8. Salve o ID da chave de acesso e chave de acesso secreta (credenciais de acesso) em, respectivamente, 
+    `AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY` no Arquivo 1 `secrets-env.env`
+    9. Vá até **Funções** e clique em na função Lambda criada na última etapa
+    10. Clique em "Adicionar permissões" > "Políticas em Linha"
+    11. Selecione o serviço Secrets Manager
+    12. Clique em JSON e anexe a política para acessar o segredo criado anteriormente referente as credenciais do Gmail API. Segue o JSON base, devendo alterar o ARN referente ao segredo.
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": "secretsmanager:GetSecretValue",
+                "Resource": "arn_aws_gmail_secrets"
+            }
+        ]
+    }
+    ```
+
+Observação: para testar se a função Lambda está funcionando corretamente, é possível ir até o serviço SQS,selecionar a SQS criada, criar uma mensagem, enviar e verificar se a função Lambda é acionada automaticamente e processa a mensagem conforme esperado. Envie a seguinte mensagem:
+
+```json
+{"email": "tarcidio.antonio@usp.br", "subject": "This is a test subject e-mail.", "text": "This is a test message e-mail."}
+```
+
+#### Riot Sign On (RSO)
+
+A aplicação possui uma módulo para integração com a API Riot conhecida como Riot Sign On (RSO) para que o usuário conecte-se com sua conta Riot e possa associar sua conta com o nível de maestria com um determinado campeão. Nesse sentido, no arquivo 1 `secrets-env.env`, é necessário informar uma chave de desenvolvedor que se consegue pelo site da Riot. Porém, a integração ainda está em construção e a funcionalidade ainda não existe de forma que quem desejar rodar essa aplicação, no campo `RIOT_DEVELOPMENT_API_KEY`, basta deixar com algum texto aleatório e não haverá nenhuma complicação.
 
 #### Spring Datasource and Postgres
 
+Como mencionado anteriormente, a aplicação utiliza o Postgres como Sistema de Gerenciamento de Banco de Dados (SGBD) para armazenar os dados no servidor. Para configurar uma instância do Postgres, é necessário inicialmente definir as variáveis de usuário. Após isso, essas informações devem ser integradas ao código da API, que estabelecerá a conexão com o SGBD. Siga os passos abaixo para a configuração:
+
+1. No Arquivo 1, localizado em `./matchub-api/docker/database/secrets-env.env`, insira o nome de usuário e a senha. Escolha esses dados com cuidado!
+
+```.dotenv
+POSTGRES_USER=your_postgres_user_here
+POSTGRES_PASSWORD=*your_postgres_password_here
+```
+
+2. No Arquivo 2, encontrado em `./matchub-api/docker/api/secrets-env.env`, insira o nome de usuário e a senha, utilizando exatamente os mesmos valores definidos na etapa anterior. Este procedimento habilitará a API Spring a estabelecer uma conexão eficaz com o SGBD.
+
+```.dotenv
+SPRING_DATASOURCE_USERNAME=your_spring_datasource_username_here
+SPRING_DATASOURCE_PASSWORD=your_spring_datasource_password_here
+```
+
 #### Spring Security and JWT Token
 
-#### Summary
+Para gerenciar a segurança da aplicação, o Spring Security utiliza propriedades específicas para a autenticação básica, que são especialmente úteis durante o desenvolvimento ou em cenários de teste. Essas propriedades, que definem um usuário e uma senha padrão, foram configuradas por meio de variáveis de ambiente. Essas credenciais básicas facilitam a configuração inicial da segurança sem comprometer a funcionalidade da aplicação durante as fases de desenvolvimento e teste. Insira as informações necessárias no Arquivo 1, localizado em `./matchub-api/docker/api/secrets-env.env`.
+
+```.dotenv
+SPRING_SECURITY_USER_NAME=your_spring_security_user_name_here
+SPRING_SECURITY_USER_PASSWORD=your_spring_security_user_password_here
+```
+
+
+o que é oauth2.0, token, jwt token, refresh token
+valores esperados para expliração
+
+JWT_SECRET_KEY=your_jwt_secret_key_here
+APPLICATION_SECURITY_JWT_EXPIRATION=your_application_security_jwt_expiration_here
+APPLICATION_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION=your_application_security_jwt_refresh_token_expiration_here
 
 ### Docker
 
-
+o que é docker
+eh necessário ter instalado
+basta executar:
 
 docker-compose up -d
 
 ## About the project and submodules
 
-
+on building
 
 ## Notes
 
@@ -185,8 +288,26 @@ Por outro lado, OAuth 2.0 é um protocolo de autorização amplamente adotado qu
 * **SQS (Simple Queue Service)**: serviço assincrono de mensagem que permite enviar, armazenar e receber mensagens entre componentes de software (partes de um programa desenvolvido de forma independente)
 * **Lambda**: serviço que permite executar código sem provisionar ou gerenciar servidores em respostas a eventos, como recebimento ou mudança de dados em um outro serviço da AWS.
 
+###### Nota: Políticas AWS
+
+    Observações sobre políticas:
+    * As políticas citadas acima são gerais, porém recomendamos fortemente que sejam criadas políticas personalizadas para a manipulação. Assim, o usuário conseguirá manipular apenas o bucket S3 e o SQS que lhe diz respeito e apenas poderá fazer ações que fazem sentido ,garantindo que usuários e serviços tenham apenas as permissões estritamente necessárias para realizar suas tarefas
+    * É possível criar também grupos de políticas, facilitando consistência de permissões, gerenciamento, reutilização e auditoria
+    * Nenhuma das observação acima é necessária ser implementada para execução da aplicação. Caso seja do seu interesse implementar, a interface AWS IAM tem diversas indicações para orientar. 
+
+###### Trigger pode ter configurações de permissão adicionais, mas é configurado automaticamente
 
 
+###### Relação região, custo e eficiência
 
+
+###### Car~tao de credito para logar na AWS
+
+. Eles requerem cartão de crédito apenas para o caso da aplicação exeder o uso gratuito dos recursos, o que é raro. Para o leitor desconfiado, utilize um cartão de longevidade curta
+
+###### Spring e Spring Security
+
+framework de segurança que faz parte do ecossistema Spring
+fornece mecanismos de autenticação, Autorização, roteção contra ataques comuns, Integração com o Spring Framework
 
 
