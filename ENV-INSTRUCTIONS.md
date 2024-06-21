@@ -78,65 +78,68 @@ The application relies on [Amazon Web Services (AWS)](), which requires specific
 5. Finalize by clicking on **Create queue**.
 6. In the file `secrets-env.env`, record the SQS URL in `AWS_SQS_EVALUATION_NOTIFICATION_URL`.
 
-### Armazenar Credenciais Gmail API no AWS Secrets
 
-1. **Acesse o AWS Management Console** e vá até o serviço AWS Secrets Manager
-2. Clique em **Store a new secret**.
-3. Escolha o tipo de segredo. Para credenciais da API do Gmail, você pode escolher **Other type of secrets**.
-4. Insira as credenciais da `client_id` e `client_secret` da API do Gmail adquiridas no arquivo `credentials.json`. Você pode armazenar as credenciais em formato chave-valor. Por exemplo:
+### Storing Gmail API Credentials in AWS Secrets Manager
+
+1. **Access the AWS Management Console** and navigate to the AWS Secrets Manager service.
+2. Click on **Store a new secret**.
+3. Choose the type of secret. For Gmail API credentials, select **Other type of secrets**.
+4. Enter the `client_id` and `client_secret` credentials obtained from the `credentials.json` file. Store the credentials in a key-value format, as shown below:
+
 ```json
 {
     "client_id": "seu_client_id",
     "client_secret": "seu_client_secret"
 }
 ```
-5. Clique em **Next**.
-6. Dê um nome e, opcionalmente, uma descrição ao seu segredo.
-7. Clique em **Next** e revise as configurações.
-8. Clique em **Store** para salvar o segredo.
-9. Guarde o [ARN]() deste segredo para a etapa 7.
 
-### Criar [Camada para o Lambda]()
+5. Click on **Next**.
+6. Name your secret and, optionally, add a description.
+7. Click on **Next** again to review the settings.
+8. Click on **Store** to save the secret.
+9. Note down the [ARN]() of this secret for later use.
 
-1. No painel de navegação à esquerda, clique em "Layers".
-2. Clique em "Create layer".
-3. Dê um nome e uma descrição para a camada
-4. Faça upload do [arquivo ZIP que se encontra `./lambda/google-layer.zip`]()
-5. Clique em "Create".
+### Creating a Layer for Lambda
 
-### Criar Lambda
+1. In the left navigation panel, click on "Layers".
+2. Select "Create layer".
+3. Name and describe your layer.
+4. Upload the ZIP file located at `./lambda/google-layer.zip`.
+5. Click on "Create".
 
-1. **Acesse o AWS Management Console** e vá até o serviço Amazon Lambda.
-2. Clique em "Create function".
-3. Escolha "Author from scratch".
-4. Insira um nome para a função.
-5. Escolha o runtime Python 3.8
-6. Crie a função Lambda
-7. Em "Visão Geral" clique em "Add trigger" à esquerda
-8. Na lista de triggers disponíveis, selecione "SQS".
-9. Escolha a fila SQS que criou anteriormente
-10. Configuraçãoes básicas são feitas automáticamente, mas pode configurar opções adicionais para o trigger
-11. Salve a configuração
-12. Vá na aba "Código" > "Origem do código" e cole o código anexado neste diretório `./lambda/evaluation-notification.py`
-13. Vá em "Camadas" > "Adicionar uma camada"
-14. Escolha a opção "Camada Personalizada"
-15. Escolha a camada criada anteriormente
-16. clique em "Adicionar"
+### Setting Up a Lambda Function
 
-### Configurar um Usuário IAM e Políticas de Acesso
+1. **Access the AWS Management Console** and go to the Amazon Lambda service.
+2. Click on "Create function".
+3. Choose "Author from scratch".
+4. Enter a name for the function.
+5. Select the Python 3.8 runtime.
+6. Create the Lambda function.
+7. In the "Overview" section, click on "Add trigger" on the left.
+8. From the available triggers list, select "SQS".
+9. Choose the previously created SQS queue.
+10. Basic settings are applied automatically, but you can configure additional options for the trigger.
+11. Save the settings.
+12. In the "Code" > "Code source" tab, paste the code from the file `./lambda/evaluation-notification.py`.
+13. Go to "Layers" > "Add a layer".
+14. Select "Custom layer".
+15. Choose the layer you previously created.
+16. Click on "Add".
 
-1. **Acesse o AWS Management Console** e vá até o serviço Amazon IAM.
-2. Vá até **Usuários** e clique em **Adicionar usuário**.
-3. Escolha um nome de usuário e clique em **Próximo: Permissões**.
-5. Escolha [**Anexar políticas existentes diretamente**]()
-6. Procure por políticas relacionadas ao S3 (como `AmazonS3FullAccess` para acesso total) e ao SQS (como `AmazonSQSFullAccess` para acesso total) e anexe
-7. Complete a criação do usuário
-8. Salve o ID da chave de acesso e chave de acesso secreta (credenciais de acesso) em, respectivamente, 
-`AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY` no Arquivo 1 `secrets-env.env`
-9. Vá até **Funções** e clique em na função Lambda criada na última etapa
-10. Clique em "Adicionar permissões" > "Políticas em Linha"
-11. Selecione o serviço Secrets Manager
-12. Clique em JSON e anexe a política para acessar o segredo criado anteriormente referente as credenciais do Gmail API. Segue o JSON base, devendo alterar o ARN referente ao segredo.
+### IAM User Configuration and Access Policies
+
+1. **Access the AWS Management Console** and navigate to the **Amazon IAM** service.
+2. Select the **Users** option and click on **Add user**.
+3. Enter a username and select **Next: Permissions**.
+4. Choose the option **Attach existing policies directly**.
+5. Search for and select the necessary policies for S3 (`AmazonS3FullAccess` for full access) and for SQS (`AmazonSQSFullAccess` for full access), and attach them to the user.
+6. Complete the user creation.
+7. Store the access key ID and the secret access key in the variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in the file `secrets-env.env`.
+8. Navigate to **Roles** and select the previously created Lambda function.
+9. Click on **Add permissions** and then on **Inline Policies**.
+10. Choose the **Secrets Manager** service.
+11. In the JSON tab, insert the policy to access the previously created secret related to the Gmail API credentials. Modify the ARN as needed in the following JSON:
+    
 ```json
 {
     "Version": "2012-10-17",
@@ -151,7 +154,8 @@ The application relies on [Amazon Web Services (AWS)](), which requires specific
 }
 ```
 
-Observação: para testar se a função Lambda está funcionando corretamente, é possível ir até o serviço SQS,selecionar a SQS criada, criar uma mensagem, enviar e verificar se a função Lambda é acionada automaticamente e processa a mensagem conforme esperado. Envie a seguinte mensagem:
+**Testing the Lambda Function:**
+To check if the Lambda function is operating correctly, go to the SQS service, select the created queue, send the following message, and verify if the function is automatically activated and processes the message properly:
 
 ```json
 {"email": "tarcidio.antonio@usp.br", "subject": "This is a test subject e-mail.", "text": "This is a test message e-mail."}
@@ -159,20 +163,20 @@ Observação: para testar se a função Lambda está funcionando corretamente, �
 
 ## Riot Sign On (RSO)
 
-A aplicação possui uma módulo para integração com a API Riot conhecida como Riot Sign On (RSO) para que o usuário conecte-se com sua conta Riot e possa associar sua conta com o nível de maestria com um determinado campeão. Nesse sentido, no arquivo 1 `secrets-env.env`, é necessário informar uma chave de desenvolvedor que se consegue pelo site da Riot. Porém, a integração ainda está em construção e a funcionalidade ainda não existe de forma que quem desejar rodar essa aplicação, no campo `RIOT_DEVELOPMENT_API_KEY`, basta deixar com algum texto aleatório e não haverá nenhuma complicação.
+The application includes a module for integration with the Riot API, known as Riot Sign On (RSO). This feature allows users to connect with their Riot account and link their mastery level with a specific champion. To configure this functionality, it is necessary to enter a developer key in the `secrets-env.env` file, which can be obtained from the Riot website. Currently, the integration with RSO is under development, and the full functionality is not yet available. Therefore, for testing purposes, you can enter any random text in the `RIOT_DEVELOPMENT_API_KEY` field without causing any issues in running the application.
 
-## Spring Datasource and Postgres
+## Configuration of Spring Datasource and Postgres
 
-Como mencionado anteriormente, a aplicação utiliza o Postgres como Sistema de Gerenciamento de Banco de Dados (SGBD) para armazenar os dados no servidor. Para configurar uma instância do Postgres, é necessário inicialmente definir as variáveis de usuário. Após isso, essas informações devem ser integradas ao código da API, que estabelecerá a conexão com o SGBD. Siga os passos abaixo para a configuração:
+As previously mentioned, the application uses Postgres as the Database Management System (DBMS) to store information on the server. To set up a Postgres instance, follow the detailed steps below:
 
-1. No Arquivo 1, localizado em `./matchub-api/docker/database/secrets-env.env`, insira o nome de usuário e a senha. Escolha esses dados com cuidado!
+1. In File 1, located at `./matchub-api/docker/database/secrets-env.env`, enter the username and password for Postgres. Choose these credentials carefully to ensure security.
 
 ```.dotenv
 POSTGRES_USER=your_postgres_user_here
-POSTGRES_PASSWORD=*your_postgres_password_here
+POSTGRES_PASSWORD=your_postgres_password_here
 ```
 
-2. No Arquivo 2, encontrado em `./matchub-api/docker/api/secrets-env.env`, insira o nome de usuário e a senha, utilizando exatamente os mesmos valores definidos na etapa anterior. Este procedimento habilitará a API Spring a estabelecer uma conexão eficaz com o SGBD.
+2. In File 2, found at `./matchub-api/docker/api/secrets-env.env`, repeat the username and password set previously. This repetition is crucial for the Spring API to establish an effective connection with the DBMS.
 
 ```.dotenv
 SPRING_DATASOURCE_USERNAME=your_spring_datasource_username_here
@@ -181,7 +185,7 @@ SPRING_DATASOURCE_PASSWORD=your_spring_datasource_password_here
 
 ## Spring Security
 
-Para gerenciar a segurança da aplicação, o Spring Security utiliza propriedades específicas para a autenticação básica, que são especialmente úteis durante o desenvolvimento ou em cenários de teste. Essas propriedades, que definem um usuário e uma senha padrão, foram configuradas por meio de variáveis de ambiente. Essas credenciais básicas facilitam a configuração inicial da segurança sem comprometer a funcionalidade da aplicação durante as fases de desenvolvimento e teste. Insira as informações necessárias no Arquivo 1, localizado em `./matchub-api/docker/api/secrets-env.env`.
+To effectively manage the security of the application, we use Spring Security, which supports specific properties for basic authentication. These properties are particularly useful during the development and testing phases, allowing for simplified security configuration without compromising the overall functionality of the application. The default user and password credentials are configured through environment variables, facilitating the initial implementation of security. Enter the necessary information in File 1, located at `./matchub-api/docker/api/secrets-env.env`.
 
 ```.dotenv
 SPRING_SECURITY_USER_NAME=your_spring_security_user_name_here
