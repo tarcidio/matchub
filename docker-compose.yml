@@ -6,7 +6,7 @@ services:
     build:
       # Indicates where to start the directory analysis to find dockerfile, env_file and volumes
       context: .
-      dockerfile: matchub-api/docker/database/Dockerfile.database
+      dockerfile: docker/dockerfiles/Dockerfile.database
     image: matchub-db-postgres-image
     container_name: matchub-db-postgres-container
     networks:
@@ -14,14 +14,14 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - matchub-api/docker/database/secrets-env.env
+      - docker/secrets/secrets-env-db.env
     volumes:
-      - /matchub-api/docker/database/data:/var/lib/postgresql/data
+      - volume-db:/var/lib/postgresql/data
 
   matchub-api-spring:
     build:
       context: .
-      dockerfile: matchub-api/docker/api/Dockerfile.api
+      dockerfile: docker/dockerfiles/Dockerfile.api
     image: matchub-api-spring-image
     container_name: matchub-api-spring-container
     networks:
@@ -29,16 +29,16 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - matchub-api/docker/api/secrets-env.env
+      - docker/secrets/secrets-env-api.env
     volumes:
-      - /matchub-api/docker/api/data/logs:/app/logs
+      - volume-api:/openjdk/logs
     depends_on:
       - matchub-db-postgres
 
   matchub-web-angular:
     build:
       context: .
-      dockerfile: matchub-web/docker/Dockerfile.web
+      dockerfile: docker/dockerfiles/Dockerfile.web
     image: matchub-web-angular-image
     container_name: matchub-web-angular-container
     networks:
@@ -46,10 +46,18 @@ services:
     ports:
       - "80:80"
     volumes:
-      - /matchub-web/docker/data/logs:/var/log/nginx
+      - volume-web:/var/log/nginx
     depends_on:
       - matchub-api-spring
 
 networks:
   matchub-network:
     driver: bridge
+
+volumes:
+  volume-db:
+    driver: local
+  volume-api:
+    driver: local
+  volume-web:
+    driver: local

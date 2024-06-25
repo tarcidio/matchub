@@ -1,0 +1,27 @@
+# Choose the base image
+# Latest version of postgres (which is maintained by developers)
+FROM postgres:latest
+
+# Set ARG to facilitate changes in the future
+# MAJOR: 1 (dependency); MINOR: 0 (feature); PATCH: 0 (bugs)
+ARG PROJECT_VERSION=1.0.0
+ 
+# Define LABEL for description purposes
+LABEL org.opencontainers.image.title="MatcHub - PostgreSQL Image Application" \
+      org.opencontainers.image.version="${PROJECT_VERSION}" \
+      org.opencontainers.image.description="Customized PostgreSQL image configured with table definitions, \
+      essential data insertion for administrator users, grants, indexes, procedures, triggers, and views. \
+      Ideal for environments requiring a pre-configured database for development or production purposes." \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="https://www.linkedin.com/in/tarcidio/" \
+      org.opencontainers.image.source="https://github.com/tarcidio/matchub-api" \
+      org.opencontainers.image.documentation="https://github.com/tarcidio/matchub-api/blob/main/README.md"
+
+# Copies files and directories from the local filesystem to the container's filesystem
+COPY ../../matchub-api/docker/database/initialize/ /docker-entrypoint-initdb.d/
+
+# Define a volume for PostgreSQL data
+VOLUME /var/lib/postgresql/data
+
+# Indicates that the container, when run, will listen on the specified ports
+EXPOSE 5432

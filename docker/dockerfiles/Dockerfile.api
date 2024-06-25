@@ -1,0 +1,89 @@
+# 1st BUILD: MAVEN
+FROM jelastic/maven:3.9.5-openjdk-21 as builder
+
+# Added ARG to facilitate any changes in the directory system
+ARG PROJECT_PATH=../../matchub-api/matchub-api/
+
+# Sets `/maven-openjdk` as the working directory for Maven
+WORKDIR /maven-openjdk
+
+# Copies the project's pom.xml to the Maven working directory
+COPY ${PROJECT_PATH}pom.xml .
+
+# Downloads all dependencies specified in `pom.xml` to the container
+RUN mvn dependency:go-offline
+
+# Copies project files to the Maven working directory
+COPY ${PROJECT_PATH}src src
+
+# Builds the .jar which, by default, will be located in the target folder created during the build
+RUN mvn package -DskipTests
+
+# 2nd BUILD: JDK
+FROM openjdk:21
+
+# Set ARG to facilitate any changes in the future
+ARG HOST_URL=http://localhost
+ARG PROJECT_PATH=../../matchub-api/matchub-api/
+# MAJOR: 1 (dependency); MINOR: 0 (feature); PATCH: 0 (bugs)
+ARG PROJECT_VERSION=1.0.0
+ARG PROJECT_NAME=matchub.jar
+
+# Set LABEL for description purposes
+LABEL org.opencontainers.image.title="MatcHub - Spring Image Application" \
+      org.opencontainers.image.version="${PROJECT_VERSION}" \
+      org.opencontainers.image.description="This Java backend application handles business logic, \
+      interacts with databases, and integrates with external services including Gmail, AWS S3, and AWS SQS. \
+      It features robust authentication mechanisms and is designed for scalable cloud environments." \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="https://www.linkedin.com/in/tarcidio/" \
+      org.opencontainers.image.source="https://github.com/tarcidio/matchub-api" \
+      org.opencontainers.image.documentation="https://github.com/tarcidio/matchub-api/blob/main/README.md"
+
+# Important environment variables for project execution
+# Location of data to initialize the application
+ENV API_DATA_CHAMPIONS_PATH=/openjdk/json/champions \
+    API_DATA_DEFAULT_IMG_PATH=/openjdk/default/img/defaultHubUser.jpg
+
+# Response URL for emails and for CORS
+ENV APP_URL_CHECK=${HOST_URL}/auth/confirm/token/ \
+    APP_URL_NOTIFICATION=${HOST_URL}/ \
+    APP_URL_ORIGIN=${HOST_URL} \
+    APP_URL_RESET=${HOST_URL}/auth/reset/token/
+
+# Location of credential files to use GMAIL
+ENV GMAIL_API_CREDENTIALS_PATH=/openjdk/google/credentials/credentials.json \
+    GMAIL_API_TOKENS_PATH=/openjdk/google/tokens
+
+# Specifies connection to the database
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://matchub-db-postgres-container:5432/matchub
+
+# Creates working directory for JDK
+# Changing working directories from one build to another is a good practice
+WORKDIR /openjdk
+
+# Define the volume for logs
+VOLUME /openjdk/logs
+
+# Copies the .jar generated in the Maven build to the JDK build
+# --from=builder: specifies that the file should be copied from a previous stage named `builder`
+COPY --from=builder /maven-openjdk/target/${PROJECT_NAME} .
+
+# Some files are opened during the execution of this project and, therefore, need to be moved
+# to the JDK working directory so that, during execution, the program can find them
+# Files 1: json of champions
+COPY ${PROJECT_PATH}src/main/resources/json /openjdk/json
+# Files 2: default user image
+COPY ${PROJECT_PATH}src/main/resources/default /openjdk/default
+# Files 3: Gmail credentials if they exist
+COPY ${PROJECT_PATH}src/main/resources/google/api /openjdk/google
+
+# Specifies the port that the application will listen on
+EXPOSE 8080
+
+# Specifies the execution command
+CMD ["java", "-jar", "matchub.jar"]
+
+# NOTE: command to see the files that the .jar compiled
+    # mvn clean package
+    # jar tf matchub-api-1.0.0.jar

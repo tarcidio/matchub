@@ -37,8 +37,8 @@ git clone --recurse-submodules https://github.com/tarcidio/MatcHub.git
 
 For the application to function correctly, it is necessary to set up some environment variables in two files that need to be created:
 
-* **File 1**: `./MatcHub-api/docker/api/secrets-env.env`
-* **File 2**: `./MatcHub-api/docker/database/secrets-env.env`
+* **File 1**: `.docker/secrets/secrets-env-api.env`
+* **File 2**: `.docker/secrets/secrets-env-db.env`
 
 These variables are crucial for connecting the application to the database, Gmail API, Riot, AWS services, and for activating the authentication and authorization systems of Spring Security. All instructions on how to obtain the necessary keys and fill out the files are detailed in the [ENV-INSTRUCTIONS.md file attached to this repository](https://github.com/tarcidio/MatcHub/blob/main/ENV-INSTRUCTIONS.md). Just like in this README.md, important concepts are explained to assist less experienced users, but these explanations are placed in notes to avoid overwhelming more advanced readers.
 

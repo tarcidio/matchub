@@ -4,7 +4,7 @@
 
 The MatcHub API code imports environment variables to configure both Spring and Postgres. Some of these variables are not sensitive and have been directly incorporated into the Dockerfile, eliminating the need for additional configuration. However, other variables contain passwords, keys, and other sensitive data that require special care. To run the application, it is essential to create two files that import these sensitive variables. Next, it will be explained how to proceed with this configuration. For eager readers, here is a summary of the file names, paths and content to be created.
 
-* **File 1**: `./matchub-api/docker/api/secrets-env.env`
+* **File 1**: `.docker/secrets/secrets-env-api.env`
 
 ```.dotenv
 AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
@@ -22,7 +22,7 @@ SPRING_SECURITY_USER_PASSWORD=your_spring_security_user_password_here
 APPLICATION_SECURITY_JWT_EXPIRATION=your_application_security_jwt_expiration_here
 APPLICATION_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION=your_application_security_jwt_refresh_token_expiration_here
 ```
-* **File 2**: `./matchub-api/docker/databse/secrets-env.env`
+* **File 2**: `.docker/secrets/secrets-env-db.env`
 
 ```.dotenv
 POSTGRES_USER=your_postgres_user_here
@@ -64,9 +64,9 @@ The application relies on the Gmail API, which requires the creation and configu
 6. Rename the downloaded file to `credentials.json`.
 7. Transfer the file to the specific folder: `./matchub-api/matchub-api/src/main/resources/google/api/credentials/credentials.json`.
 
-It is essential that the `credentials.json` file is renamed and placed precisely in the specified folder, according to the pre-established settings of the application. Any deviation from these instructions may lead to compilation errors. If it is necessary to adjust these settings, you will need to modify the `Dockerfile.api` located at `./matchub-api/matchub-api/docker/api/Dockerfile.api`.
+It is essential that the `credentials.json` file is renamed and placed precisely in the specified folder, according to the pre-established settings of the application. Any deviation from these instructions may lead to compilation errors. If it is necessary to adjust these settings, you will need to modify the `Dockerfile.api` located at `./docker/dockerfiles/Dockerfile.api`.
 
-Additionally, in the file `./matchub-api/docker/api/secrets-env.env`, configure the `GMAIL_API_FROM` variable to match the email associated with the project set up in the credential (for example: `GMAIL_API_FROM=nome.sobrenome@gmail.com`).
+Additionally, in the file `.docker/secrets/secrets-env-api.env`, configure the `GMAIL_API_FROM` variable to match the email associated with the project set up in the credential (for example: `GMAIL_API_FROM=nome.sobrenome@gmail.com`).
 
 For more details on the credential acquisition process, consult the [note about Service Account and Auth2.0](#2-service-account)$^2$.
 
@@ -79,7 +79,7 @@ The application relies on [Amazon Web Services (AWS)](#4-amazon-web-service)$^4$
 1. [Create](#5-credit-card-and-registration-on-aws)$^5$ an AWS account to access the services.
 2. [Access the AWS Management Console](https://aws.amazon.com/pt/console/).
 3. In the top right corner, [select the desired region](#6-region-choice)$^6$. This will be the region where the S3 and SQS services will be stored.
-4. In the file `secrets-env.env`, record the name of the region in `AWS_REGION`.
+4. In the file `secrets-env-api.env`, record the name of the region in `AWS_REGION`.
 
 ### Setting Up an S3 Bucket
 
@@ -88,7 +88,7 @@ The application relies on [Amazon Web Services (AWS)](#4-amazon-web-service)$^4$
 3. Assign a unique name to your bucket.
 4. Adjust the settings to allow public access, if necessary.
 5. Confirm the creation by clicking on **Create bucket**.
-6. In the file `secrets-env.env`, note the name of the bucket in `AWS_S3_BUCKET_HUBUSER_IMAGES`.
+6. In the file `secrets-env-api.env`, note the name of the bucket in `AWS_S3_BUCKET_HUBUSER_IMAGES`.
 
 ### Setting Up an SQS Queue
 
@@ -97,7 +97,7 @@ The application relies on [Amazon Web Services (AWS)](#4-amazon-web-service)$^4$
 3. Choose between a standard queue or a FIFO (First-In-First-Out) queue, as needed.
 4. Set the attributes of the queue according to the desired specifications.
 5. Finalize by clicking on **Create queue**.
-6. In the file `secrets-env.env`, record the SQS URL in `AWS_SQS_EVALUATION_NOTIFICATION_URL`.
+6. In the file `secrets-env-api.env`, record the SQS URL in `AWS_SQS_EVALUATION_NOTIFICATION_URL`.
 
 
 ### Storing Gmail API Credentials in AWS Secrets Manager
@@ -156,7 +156,7 @@ The application relies on [Amazon Web Services (AWS)](#4-amazon-web-service)$^4$
 4. Choose the option **Attach existing policies directly**.
 5. Search for and select the [necessary policies](#9-custom-iam-policies-and-policy-group)$^9$ for S3 (`AmazonS3FullAccess` for full access) and for SQS (`AmazonSQSFullAccess` for full access), and attach them to the user.
 6. Complete the user creation.
-7. Store the access key ID and the secret access key in the variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in the file `secrets-env.env`.
+7. Store the access key ID and the secret access key in the variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in the file `secrets-env-api.env`.
 8. Navigate to **Roles** and select the previously created Lambda function.
 9. Click on **Add permissions** and then on **Inline Policies**.
 10. Choose the **Secrets Manager** service.
@@ -185,20 +185,20 @@ To check if the Lambda function is operating correctly, go to the SQS service, s
 
 ## Riot Sign On (RSO)
 
-The application includes a module for integration with the Riot API, known as Riot Sign On (RSO). This feature allows users to connect with their Riot account and link their mastery level with a specific champion. To configure this functionality, it is necessary to enter a developer key in the `secrets-env.env` file, which can be obtained from the Riot website. Currently, the integration with RSO is under development, and the full functionality is not yet available. Therefore, for testing purposes, you can enter any random text in the `RIOT_DEVELOPMENT_API_KEY` field without causing any issues in running the application.
+The application includes a module for integration with the Riot API, known as Riot Sign On (RSO). This feature allows users to connect with their Riot account and link their mastery level with a specific champion. To configure this functionality, it is necessary to enter a developer key in the `secrets-env-api.env` file, which can be obtained from the Riot website. Currently, the integration with RSO is under development, and the full functionality is not yet available. Therefore, for testing purposes, you can enter any random text in the `RIOT_DEVELOPMENT_API_KEY` field without causing any issues in running the application.
 
 ## Configuration of Spring Datasource and Postgres
 
 As previously mentioned, the application uses Postgres as the Database Management System (DBMS) to store information on the server. To set up a Postgres instance, follow the detailed steps below:
 
-1. In File 1, located at `./matchub-api/docker/database/secrets-env.env`, enter the username and password for Postgres. Choose these credentials carefully to ensure security.
+1. In File 1, located at `.docker/secrets/secrets-env-db.env`, enter the username and password for Postgres. Choose these credentials carefully to ensure security.
 
 ```.dotenv
 POSTGRES_USER=your_postgres_user_here
 POSTGRES_PASSWORD=your_postgres_password_here
 ```
 
-2. In File 2, found at `./matchub-api/docker/api/secrets-env.env`, repeat the username and password set previously. This repetition is crucial for the Spring API to establish an effective connection with the DBMS.
+2. In File 2, found at `.docker/secrets/secrets-env-api.env`, repeat the username and password set previously. This repetition is crucial for the Spring API to establish an effective connection with the DBMS.
 
 ```.dotenv
 SPRING_DATASOURCE_USERNAME=your_spring_datasource_username_here
@@ -207,7 +207,7 @@ SPRING_DATASOURCE_PASSWORD=your_spring_datasource_password_here
 
 ## Spring Security
 
-To effectively manage the security of the application, we use [Spring Security](#10-spring-and-spring-security)$^{10}$, which supports specific properties for basic authentication. These properties are particularly useful during the development and testing phases, allowing for simplified security configuration without compromising the overall functionality of the application. The default user and password credentials are configured through environment variables, facilitating the initial implementation of security. Enter the necessary information in File 1, located at `./matchub-api/docker/api/secrets-env.env`.
+To effectively manage the security of the application, we use [Spring Security](#10-spring-and-spring-security)$^{10}$, which supports specific properties for basic authentication. These properties are particularly useful during the development and testing phases, allowing for simplified security configuration without compromising the overall functionality of the application. The default user and password credentials are configured through environment variables, facilitating the initial implementation of security. Enter the necessary information in File 1, located at `.docker/secrets/secrets-env-api.env`.
 
 ```.dotenv
 SPRING_SECURITY_USER_NAME=your_spring_security_user_name_here
@@ -220,7 +220,7 @@ The authorization protocol selected to allow the user to have restricted access 
 
 ### JWT Token Key
 
-The first setting involves the secret key used to encrypt the signature of the tokens, specifically JWT tokens. It is crucial to choose a secure key and store it in File 1, located at `./matchub-api/docker/api/secrets-env.env`. You can generate a secure key using a site like [Random Key Gen](https://randomkeygen.com/), which provides robust options for key generation.
+The first setting involves the secret key used to encrypt the signature of the tokens, specifically JWT tokens. It is crucial to choose a secure key and store it in File 1, located at `.docker/secrets/secrets-env-api.env`. You can generate a secure key using a site like [Random Key Gen](https://randomkeygen.com/), which provides robust options for key generation.
 
 ```.dotenv
 JWT_SECRET_KEY=your_jwt_secret_key_here
