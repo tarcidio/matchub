@@ -47,10 +47,16 @@ These variables are crucial for connecting the application to the database, Gmai
 The application has been configured to run in Docker containers. To run it, [Docker must be installed](#7-docker-and-how-install)$^7$. Execute the following command in the terminal, in the project directory:
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 Since Maven needs to import all dependencies to create the `.jar` file, the first execution may take a few minutes.
+
+To finish, do:
+
+```bash
+docker-compose down --rmi all
+```
 
 ## About the project and submodules
 
