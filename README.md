@@ -108,7 +108,7 @@ To synchronize the `MatcHub-api` repository with the latest updates, execute:
 
 ```bash
 cd MatcHub-api
-git push origin branch-name
+git pull origin branch-name
 
 cd ..
 git add MatcHub-api
