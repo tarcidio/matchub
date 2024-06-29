@@ -58,6 +58,29 @@ To finish, do:
 docker-compose down --rmi all
 ```
 
+## About the Architecture
+
+The application is structured around the standard components of a web application: frontend, backend, and infrastructure services. In the frontend, the highlight is the Angular framework, which uses HTML, CSS, and TypeScript. Angular is notable for its high responsiveness and dynamism, enhancing the user experience and promoting effective code development organization. However, these advantages come with a steeper learning curve, especially when compared to other libraries or frameworks such as React and Vue.
+
+In the backend, the RESTful API that interacts with Angular is developed using the Spring framework, based on Java. Spring is highly valued for its excellent dependency management, facilitating the decoupling between code modules, and simplifying the configuration process. It integrates efficiently with subframeworks like Spring Security for managing authentication, authorization, and role control. The extensive community supporting Spring also broadens its use. Despite its numerous advantages, both Spring and Java have a significant learning curve, particularly when compared to technologies like JavaScript with Node.js for backend management.
+
+For data management, PostgreSQL was chosen as the Relational Database Management System (RDBMS). It is the fourth most used RDBMS globally, standing out for its adherence to SQL standards and its extensibility, which allows integration with a variety of tools and supports the management of large volumes of data. Additionally, PostgreSQL offers a robust set of security features.
+
+Infrastructure services are predominantly provided by Amazon Web Services (AWS) and Google, playing crucial roles in specific operations within the application flow. For storing user images, we use AWS S3, known for its robustness and scalability. Moreover, for the asynchronous processing of events, such as sending email notifications, we employ AWS Lambda. This service allows for the efficient and scalable execution of event-based functions, optimizing the application's performance and resource management.
+
+Below is a visual representation of the architecture:
+
+![Architecture](architecture.png)
+
+Some workflows that deserve emphasis:
+
+1. **User Interaction with the Frontend**: The user accesses the site through a browser and performs actions such as uploading images, which are sent to AWS S3 via the API.
+2. **Communication with the Backend**: The Frontend communicates with the Backend via API to perform CRUD operations (Create, Read, Update, Delete) on entities such as HubUser, Comment, and Evaluation.
+3. **Asynchronous Processing**: Specific events trigger the sending of messages to AWS SQS, which in turn activates Lambda functions to process these events, such as sending email notifications.
+4. **Sending Emails**: Emails are sent through integration with the Gmail API to notify users about relevant events or to confirm actions such as registration and password recovery.
+
+It is important to note that the use of SQS and Lambda for sending emails is optional and was implemented to explore AWS functionalities, not being the main focus on high performance.
+
 ## About the project and submodules
 
 This project was developed by [Tarcídio Antônio Júnior](https://www.linkedin.com/in/tarcidio/), under the guidance of the internship program at [Opus Software](https://www.opus-software.com.br/). In 2024, while pursuing a degree in Computer Science at the [University of São Paulo (USP)](https://www5.usp.br/), São Carlos campus, specifically at the [Institute of Mathematical and Computer Sciences (ICMC)](https://www.icmc.usp.br/), Tarcídio took on this challenge with the aim of applying the knowledge gained both in his undergraduate studies and during his internship. Throughout this period, the project proved to be an excellent opportunity to delve deeper into concepts such as RESTful APIs, Java, Spring, TypeScript, and Angular, all of which were thoroughly covered in the Opus internship program.
