@@ -1,5 +1,7 @@
 # Enviroment Variables
 
+![Env-Art](/demo/Env-Art.jpeg)
+
 ## Introduction
 
 The MatcHub API code imports environment variables to configure both Spring and Postgres. Some of these variables are not sensitive and have been directly incorporated into the Dockerfile, eliminating the need for additional configuration. However, other variables contain passwords, keys, and other sensitive data that require special care. To run the application, it is essential to create two files that import these sensitive variables. Next, it will be explained how to proceed with this configuration. For eager readers, here is a summary of the file names, paths and content to be created.

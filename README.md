@@ -1,6 +1,6 @@
 # Connect, Combat and Conquer: MatcHub, Your Matchup Forum
 
-![Descrição alternativa](imagem-intro.jpeg)
+![Intro-Art](/demo/Intro-Art.jpeg)
 
 ## What is Mathub?
 
@@ -62,15 +62,15 @@ docker-compose down --rmi all
 
 The application is structured around the standard components of a web application: frontend, backend, and infrastructure services. In the frontend, the highlight is the Angular framework, which uses HTML, CSS, and TypeScript. Angular is notable for its high responsiveness and dynamism, enhancing the user experience and promoting effective code development organization. However, these advantages come with a steeper learning curve, especially when compared to other libraries or frameworks such as React and Vue.
 
-In the backend, the RESTful API that interacts with Angular is developed using the Spring framework, based on Java. Spring is highly valued for its excellent dependency management, facilitating the decoupling between code modules, and simplifying the configuration process. It integrates efficiently with subframeworks like Spring Security for managing authentication, authorization, and role control. The extensive community supporting Spring also broadens its use. Despite its numerous advantages, both Spring and Java have a significant learning curve, particularly when compared to technologies like JavaScript with Node.js for backend management.
+In the backend, the RESTful API that interacts with Angular is developed using the Spring framework, based on Java. Spring is highly valued for its excellent dependency management, facilitating the decoupling between code modules, and simplifying the configuration process. It integrates efficiently with subframeworks like Spring Security for managing authentication ([see about in the API repository](https://github.com/tarcidio/matchub-api)), authorization, and role control. The extensive community supporting Spring also broadens its use. Despite its numerous advantages, both Spring and Java have a significant learning curve, particularly when compared to technologies like JavaScript with Node.js for backend management.
 
-For data management, PostgreSQL was chosen as the Relational Database Management System (RDBMS). It is the fourth most used RDBMS globally, standing out for its adherence to SQL standards and its extensibility, which allows integration with a variety of tools and supports the management of large volumes of data. Additionally, PostgreSQL offers a robust set of security features.
+For data management, PostgreSQL was chosen as the Relational Database Management System (RDBMS). It is the fourth most used RDBMS globally, standing out for its adherence to SQL standards and its extensibility, which allows integration with a variety of tools and supports the management of large volumes of data. Additionally, PostgreSQL offers a robust set of security features. To better understand the entities that generated the database, see [the API repository.](https://github.com/tarcidio/matchub-api)
 
 Infrastructure services are predominantly provided by Amazon Web Services (AWS) and Google, playing crucial roles in specific operations within the application flow. For storing user images, we use AWS S3, known for its robustness and scalability. Moreover, for the asynchronous processing of events, such as sending email notifications, we employ AWS Lambda. This service allows for the efficient and scalable execution of event-based functions, optimizing the application's performance and resource management.
 
 Below is a visual representation of the architecture:
 
-![Architecture](architecture.png)
+![Architecture](/demo/Architecture-Diagram.png)
 
 Some workflows that deserve emphasis:
 
